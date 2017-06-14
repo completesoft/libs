@@ -26,7 +26,10 @@ def to_sqlite(DB, dictData):
         if k not in names:
             scriptAlter+=tempAlter.format(k)
         fields+=k+","
-        data+="{"+k+"},"
+        if k=='date':
+            data += "{" + k +"!r"+ "},"
+        else:
+            data+="{"+k+"},"
 
     cursor.executescript(scriptAlter)
     con.commit()
