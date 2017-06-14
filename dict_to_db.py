@@ -4,7 +4,7 @@ import sys, os
 
 DB_LITE = 'counter.db'
 
-def computing(DB, dictData):
+def to_sqlite(DB, dictData):
     if not os.access(DB, os.F_OK):
         with sqlite3.connect(DB) as con:
             cur = con.cursor()
@@ -41,4 +41,4 @@ def computing(DB, dictData):
 
 
 if __name__=="__main__":
-    computing(DB_LITE, dictIncomeData)
+    to_sqlite(DB_LITE, dictIncomeData)
