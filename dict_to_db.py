@@ -1,14 +1,22 @@
 import sqlite3
 import sys, os
 
-
 DB_LITE = 'counter.db'
+TABLE_LITE = 'counter'
 
-def to_sqlite(DB, dictData):
+def to_sqlite(DB="", TABLE="", DATA={}):
+    DB = DB or DB_LITE
+    Table = TABLE or TABLE_LITE
+
+    CreateTemplate = "CREATE TABLE IF NOT EXISTS {} ".format(Table)+"(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
+    InsertTemplate = "INSERT INTO {} ".format(Table)+"({}) values({})"
+    tempAlterReal = "ALTER TABLE {} ".format(Table)+"ADD COLUMN '{}' 'REAL';"
+    tempAlterText = "ALTER TABLE {} ".format(Table)+"ADD COLUMN '{}' 'TEXT';"
+
     if not os.access(DB, os.F_OK):
         with sqlite3.connect(DB) as con:
             cur = con.cursor()
-            cur.execute("CREATE TABLE IF NOT EXISTS counter(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
+            cur.execute(CreateTemplate)
             cur.close()
     con = sqlite3.connect(DB)
     cursor = con.cursor()
@@ -18,19 +26,18 @@ def to_sqlite(DB, dictData):
     con.commit()
 
     scriptAlter = ""
-    InsertTemplate = "INSERT INTO counter ({}) values({})"
     fields = ""
     data = ""
-    for k, v in dictData.items():
-        tempAlter = "ALTER TABLE counter ADD COLUMN '{}' 'REAL';"
+    for k, v in DATA.items():
+        tempAlter = tempAlterReal
         if k not in names:
+            if type(v)==str: tempAlter = tempAlterText
             scriptAlter+=tempAlter.format(k)
         fields+=k+","
-        if k=='date':
+        if type(v)==str:
             data += "{" + k +"!r"+ "},"
         else:
             data+="{"+k+"},"
-
     cursor.executescript(scriptAlter)
     con.commit()
 
@@ -38,10 +45,15 @@ def to_sqlite(DB, dictData):
     data = data[:-1]
 
     scriptInsert = InsertTemplate.format(fields, data)
-    scriptInsert = scriptInsert.format(**dictData)
+    scriptInsert = scriptInsert.format(**DATA)
+    print(scriptInsert)
+    if not DATA:
+        print("Nothing to INSERT. DATA dict empty!!!")
+        sys.exit(1)
     cursor.execute(scriptInsert)
     con.commit()
 
 
 if __name__=="__main__":
-    to_sqlite(DB_LITE, dictIncomeData)
+    to_sqlite(DB='', TABLE='', DATA={})
+
